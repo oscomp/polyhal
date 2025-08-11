@@ -25,6 +25,7 @@ cfg_if::cfg_if! {
 }
 
 /// Clear the bss section
+#[cfg_attr(target_arch = "loongarch64", allow(unused))]
 pub(crate) fn clear_bss() {
     extern "C" {
         fn _sbss();
