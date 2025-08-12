@@ -121,8 +121,6 @@ impl PageTable {
     pub const PAGE_LEVEL: usize = 4;
     pub const PTE_NUM_IN_PAGE: usize = 0x200;
     pub(crate) const GLOBAL_ROOT_PTE_RANGE: usize = 0x100;
-    pub(crate) const VADDR_BITS: usize = 48;
-    pub(crate) const USER_VADDR_END: usize = (1 << Self::VADDR_BITS) - 1;
 
     #[inline]
     pub fn restore(&self) {

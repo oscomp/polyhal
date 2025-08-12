@@ -20,13 +20,16 @@ pub mod info;
 
 pub mod arch;
 pub use arch::consts;
-mod components;
+pub mod barrier;
+pub mod common;
+pub mod instruction;
 pub mod irq;
+pub mod kcontext;
 pub mod mem;
+pub mod multicore;
+pub mod pagetable;
 pub mod percpu;
 pub mod timer;
-pub use components::*;
-pub mod pagetable;
 
 pub use utils::addr::{PhysAddr, VirtAddr};
 

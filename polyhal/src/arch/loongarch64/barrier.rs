@@ -8,7 +8,7 @@
 //
 // Hint 0x700: barrier for "read after read" from the same address
 
-use crate::components::mem::Barrier;
+use crate::barrier::Barrier;
 
 const CRWRW: usize = 0b00000;
 // const CR_R_: usize	= 0b00101;

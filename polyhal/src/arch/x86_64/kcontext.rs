@@ -1,31 +1,26 @@
-use core::{
-    arch::naked_asm,
-    ops::{Index, IndexMut},
-};
-
+use crate::kcontext::KContextArgs;
 use crate::PageTable;
-
-use crate::components::kcontext::KContextArgs;
+use core::arch::naked_asm;
+use core::ops::{Index, IndexMut};
+use x86_64::registers::model_specific::FsBase;
 
 /// Save the task context registers.
 macro_rules! save_callee_regs {
     () => {
         "
-        sd      sp, 0*8(a0)
-        sd      tp, 1*8(a0)
-        sd      s0, 2*8(a0)
-        sd      s1, 3*8(a0)
-        sd      s2, 4*8(a0)
-        sd      s3, 5*8(a0)
-        sd      s4, 6*8(a0)
-        sd      s5, 7*8(a0)
-        sd      s6, 8*8(a0)
-        sd      s7, 9*8(a0)
-        sd      s8, 10*8(a0)
-        sd      s9, 11*8(a0)
-        sd      s10, 12*8(a0)
-        sd      s11, 13*8(a0)
-        sd      ra, 14*8(a0)
+            mov     [rdi + 0 * 8], rsp
+            mov     [rdi + 2 * 8], rbx
+            mov     [rdi + 3 * 8], rbp
+            mov     [rdi + 4 * 8], r12
+            mov     [rdi + 5 * 8], r13
+            mov     [rdi + 6 * 8], r14
+            mov     [rdi + 7 * 8], r15
+            mov     [rdi + 8 * 8], r8     # save old rip to stack    
+            
+            mov     ecx, 0xC0000100
+            rdmsr
+            mov     [rdi + 1*8],    eax   # push fabase
+            mov     [rdi + 1*8+4],  edx  
         "
     };
 }
@@ -34,29 +29,19 @@ macro_rules! save_callee_regs {
 macro_rules! restore_callee_regs {
     () => {
         "
-        ld      sp, 0*8(a1)
-        ld      tp, 1*8(a1)
-        ld      s0, 2*8(a1)
-        ld      s1, 3*8(a1)
-        ld      s2, 4*8(a1)
-        ld      s3, 5*8(a1)
-        ld      s4, 6*8(a1)
-        ld      s5, 7*8(a1)
-        ld      s6, 8*8(a1)
-        ld      s7, 9*8(a1)
-        ld      s8, 10*8(a1)
-        ld      s9, 11*8(a1)
-        ld      s10, 12*8(a1)
-        ld      s11, 13*8(a1)
-        ld      ra, 14*8(a1)
+            mov     ecx, 0xC0000100
+            mov     eax, [rsi + 1*8]
+            mov     edx, [rsi + 1*8+4]
+            wrmsr                         # pop fsbase
+            mov     rsp, [rsi + 0 * 8]
+            mov     rbx, [rsi + 2 * 8]
+            mov     rbp, [rsi + 3 * 8]
+            mov     r12, [rsi + 4 * 8]
+            mov     r13, [rsi + 5 * 8]
+            mov     r14, [rsi + 6 * 8]
+            mov     r15, [rsi + 7 * 8]
+            mov     r8,  [rsi + 8 * 8]
         "
-    };
-}
-
-/// Return instruction wrapper.
-macro_rules! ret {
-    () => {
-        "ret"
     };
 }
 
@@ -70,9 +55,18 @@ pub struct KContext {
     ksp: usize,
     /// Kernel Thread Pointer
     ktp: usize,
-    /// Kernel S regs, s0 - s11, just callee-saved registers
-    /// just used in the context_switch function.
-    _sregs: [usize; 12],
+    // Callee saved register
+    rbx: usize,
+    // Callee saved register
+    rbp: usize,
+    // Callee saved register
+    r12: usize,
+    // Callee saved register
+    r13: usize,
+    // Callee saved register
+    r14: usize,
+    // Callee saved register
+    r15: usize,
     /// Kernel Program Counter, Will return to this address.
     kpc: usize,
 }
@@ -83,7 +77,12 @@ impl KContext {
         Self {
             ksp: 0,
             ktp: 0,
-            _sregs: [0; 12],
+            rbx: 0,
+            rbp: 0,
+            r12: 0,
+            r13: 0,
+            r14: 0,
+            r15: 0,
             kpc: 0,
         }
     }
@@ -127,11 +126,9 @@ impl Index<KContextArgs> for KContext {
 ///
 /// etc. Change the value of the kernel Context using IndexMut
 ///
-/// ```Rust
 /// KContext[KContextArgs::KSP] = ksp;
 /// KContext[KContextArgs::KPC] = kpc;
 /// KContext[KContextArgs::KTP] = ktp;
-/// ```
 ///
 impl IndexMut<KContextArgs> for KContext {
     fn index_mut(&mut self, index: KContextArgs) -> &mut Self::Output {
@@ -146,21 +143,36 @@ impl IndexMut<KContextArgs> for KContext {
 /// Context Switch
 ///
 /// Save the context of current task and switch to new task.
+///
+/// # Safety
+///
+/// This function is unsafe because it performs a context switch, which can lead to undefined behavior if not used correctly.
 #[naked]
 pub unsafe extern "C" fn context_switch(from: *mut KContext, to: *const KContext) {
     naked_asm!(
         // Save Kernel Context.
+        "
+        pop     r8 
+        ",
         save_callee_regs!(),
         // Restore Kernel Context.
         restore_callee_regs!(),
-        // Return to the caller.
-        ret!(),
+        "
+        push    r8
+        ret
+        ",
     )
 }
 
 /// Context Switch With Page Table
 ///
 /// Save the context of current task and switch to new task.
+///
+/// # Safety
+///
+/// This function is unsafe because it performs a context switch, which can lead to undefined behavior if not used correctly.
+/// It also requires a valid page table token.
+/// The page table token is used to switch the page table for the new task.
 #[inline]
 pub unsafe extern "C" fn context_switch_pt(
     from: *mut KContext,
@@ -180,31 +192,30 @@ unsafe extern "C" fn context_switch_pt_impl(
     pt_token: usize,
 ) {
     naked_asm!(
+        // consume the return address(rip) in the stack
+        // for consistency with context_switch.
+        // and save page table to r9
+        "
+            pop     r8
+            mov     r9, rdx
+        ",
         // Save Kernel Context.
         save_callee_regs!(),
         // Switch to new page table.
         "
-            srli    a2,   a2, 12
-            li      a3,   8 << 60
-            or      a2,   a2, a3
-            csrw    satp, a2
-            sfence.vma
+            mov     cr3,   r9
         ",
         // Restore Kernel Context.
         restore_callee_regs!(),
-        // Return to the caller.
-        ret!(),
+        "
+            push    r8
+            ret
+        ",
     )
 }
 
-#[naked]
-pub extern "C" fn read_current_tp() -> usize {
-    unsafe {
-        naked_asm!(
-            "
-                mv      a0, tp
-                ret
-            ",
-        )
-    }
+/// Read thread pointer currently.
+#[inline]
+pub fn read_current_tp() -> usize {
+    FsBase::read().as_u64() as _
 }

@@ -13,3 +13,10 @@ pub fn shutdown() -> ! {
         spin_loop();
     }
 }
+
+/// Riscv64 ebreak instruction.
+pub fn ebreak() {
+    unsafe {
+        core::arch::asm!("int 3");
+    }
+}

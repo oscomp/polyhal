@@ -1,4 +1,4 @@
-use crate::components::kcontext::KContextArgs;
+use crate::kcontext::KContextArgs;
 use crate::PageTable;
 use core::arch::naked_asm;
 use core::ops::{Index, IndexMut};

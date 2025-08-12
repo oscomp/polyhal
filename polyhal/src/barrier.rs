@@ -1,5 +1,3 @@
-super::define_arch_mods!();
-
 /// This is a barrier function.
 ///
 /// This struct has two functions.

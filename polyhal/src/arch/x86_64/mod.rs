@@ -3,7 +3,10 @@ pub mod apic;
 pub mod consts;
 pub mod gdt;
 pub mod idt;
+pub mod instruction;
 pub mod irq;
+pub mod kcontext;
+pub mod multicore;
 pub mod percpu;
 pub mod timer;
 

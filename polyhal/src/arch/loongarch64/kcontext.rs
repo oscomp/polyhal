@@ -4,7 +4,7 @@ use core::{
     ops::{Index, IndexMut},
 };
 
-use crate::{components::kcontext::KContextArgs, pagetable::PageTable};
+use crate::{kcontext::KContextArgs, pagetable::PageTable};
 
 /// Save the task context registers.
 macro_rules! save_callee_regs {
