@@ -2,7 +2,7 @@ use core::ptr::NonNull;
 
 use acpi::{AcpiHandler, AcpiTables};
 
-use crate::{common::CPU_NUM, PhysAddr};
+use crate::{info::BOOT_INFO, PhysAddr};
 
 #[derive(Clone)]
 struct AcpiImpl;
@@ -37,7 +37,7 @@ pub fn init() {
                     .entries()
                     .filter(|x| matches!(x, acpi::madt::MadtEntry::LocalApic(_)))
                     .count();
-                CPU_NUM.init_once(cpu_count);
+                BOOT_INFO.get_mut().cpu_num = cpu_count;
             }
             Err(err) => println!("acpi error: {:#x?}", err),
         }

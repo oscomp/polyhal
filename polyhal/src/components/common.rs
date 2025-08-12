@@ -1,6 +1,6 @@
 use lazyinit::LazyInit;
 
-use crate::PhysAddr;
+use crate::{info::BOOT_INFO, PhysAddr};
 
 /// Page Allocation trait for privoids that page allocation
 pub trait PageAlloc: Sync {
@@ -18,12 +18,9 @@ pub fn init(page_alloc: &'static dyn PageAlloc) {
     PAGE_ALLOC.init_once(page_alloc);
 }
 
-/// Store the number of cpu, this will fill up by startup function.
-pub(crate) static CPU_NUM: LazyInit<usize> = LazyInit::new();
-
 /// Get the number of cpus
 pub fn get_cpu_num() -> usize {
-    *CPU_NUM
+    BOOT_INFO.cpu_num
 }
 
 /// alloc a persistent memory page

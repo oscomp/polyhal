@@ -3,7 +3,7 @@ use core::ptr::NonNull;
 use arrayvec::ArrayVec;
 use fdt_parser::{Fdt, FdtError};
 
-use crate::{utils::BootLock, PhysAddr, MEM_VECTOR_CAPACITY};
+use crate::{consts::VIRT_ADDR_START, utils::BootLock, PhysAddr, MEM_VECTOR_CAPACITY};
 
 /// Boot Information
 pub static BOOT_INFO: BootLock<BootInfo> = BootLock::new(BootInfo::new());
@@ -16,6 +16,8 @@ pub struct BootInfo {
     pub reserved: ArrayVec<(usize, usize), MEM_VECTOR_CAPACITY>,
     /// Device Tree Binary Pointer and its size
     pub dtb_ptr: Option<(PhysAddr, usize)>,
+    /// The count of cpu core
+    pub cpu_num: usize,
 }
 
 impl BootInfo {
@@ -25,6 +27,7 @@ impl BootInfo {
             available: ArrayVec::new_const(),
             reserved: ArrayVec::new_const(),
             dtb_ptr: None,
+            cpu_num: 1,
         }
     }
 
@@ -33,7 +36,10 @@ impl BootInfo {
             fn _skernel();
             fn _end();
         }
-        self.reserved.push((_skernel as usize, _end as usize));
+        self.reserved.push((
+            _skernel as usize - VIRT_ADDR_START,
+            _end as usize - VIRT_ADDR_START,
+        ));
     }
 
     pub fn parse_dtb(&mut self, dtb_ptr: PhysAddr) -> Result<(), FdtError<'static>> {
@@ -61,6 +67,7 @@ impl BootInfo {
                     self.add_memory_region(start, end);
                 }
             });
+        self.cpu_num = fdt.find_nodes("/cpus/cpu").count();
         Ok(())
     }
 

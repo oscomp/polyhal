@@ -2,11 +2,11 @@ use core::ptr::NonNull;
 
 use fdt_parser::{Fdt, FdtError};
 
-use crate::{common::CPU_NUM, info::BOOT_INFO};
+use crate::info::BOOT_INFO;
 
 /// Get Flattened Device Tree
 pub fn get_fdt() -> Result<Fdt<'static>, FdtError<'static>> {
-    if !BOOT_INFO.dtb_ptr.is_none() {
+    if BOOT_INFO.dtb_ptr.is_none() {
         return Err(FdtError::BadPtr);
     }
     unsafe {
@@ -37,8 +37,8 @@ pub fn parse_system_info() {
     display_info!("Platform Arch", "{}", env!("HAL_ENV_ARCH"));
     if let Ok(fdt) = get_fdt() {
         display_info!("Boot HART ID", "{}", fdt.boot_cpuid_phys());
-        display_info!("Boot HART Count", "{}", fdt.find_nodes("/cpus/cpu").count());
-        CPU_NUM.init_once(fdt.find_nodes("/cpus/cpu").count());
+        display_info!("Boot HART Count", "{}", BOOT_INFO.cpu_num);
+
         fdt.chosen().inspect(|chosen| {
             display_info!("Boot Args", "{}", chosen.bootargs().unwrap_or(""));
         });
