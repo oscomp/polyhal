@@ -21,8 +21,10 @@ pub mod info;
 pub mod arch;
 pub use arch::consts;
 mod components;
+pub mod irq;
 pub mod mem;
 pub mod percpu;
+pub mod timer;
 pub use components::*;
 pub mod pagetable;
 

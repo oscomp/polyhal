@@ -2,9 +2,9 @@ use core::time::Duration;
 
 use crate::{
     arch::x86_64::apic::{local_apic, raw_apic_id},
+    arch::x86_64::timer::timer_wait,
     consts::VIRT_ADDR_START,
     pagetable::PAGE_SIZE,
-    timer::timer_wait,
 };
 
 const AP_BOOT_PAGE: usize = 0x6000;

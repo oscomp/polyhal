@@ -1,4 +1,6 @@
 pub mod consts;
+pub mod irq;
+pub mod timer;
 
 #[inline]
 pub fn hart_id() -> usize {

@@ -3,7 +3,9 @@ pub mod apic;
 pub mod consts;
 pub mod gdt;
 pub mod idt;
+pub mod irq;
 pub mod percpu;
+pub mod timer;
 
 pub fn hart_id() -> usize {
     match raw_cpuid::CpuId::new().get_feature_info() {

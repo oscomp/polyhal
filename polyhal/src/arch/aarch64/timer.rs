@@ -3,9 +3,10 @@ use core::time::Duration;
 use aarch64_cpu::registers::{CNTFRQ_EL0, CNTPCT_EL0, CNTP_CTL_EL0, CNTP_TVAL_EL0};
 use tock_registers::interfaces::{Readable, Writeable};
 
-use crate::components::irq::{IRQ, TIMER_IRQ_NUM};
+use crate::arch::aarch64::irq::TIMER_IRQ_NUM;
+use crate::irq::IRQ;
 
-use super::current_time;
+use crate::timer::current_time;
 
 /// Get ticks from system clock
 ///
@@ -54,3 +55,5 @@ pub fn init() {
     IRQ::irq_enable(TIMER_IRQ_NUM);
     set_next_timer(Duration::ZERO);
 }
+
+ph_ctor!(ARCH_INIT_TIMER, crate::ctor::CtorType::Platform, init);

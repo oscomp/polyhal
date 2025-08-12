@@ -1,4 +1,6 @@
 pub mod consts;
+pub mod irq;
+pub mod timer;
 
 #[polyhal_macro::percpu]
 pub(crate) static CPU_ID: usize = 0;

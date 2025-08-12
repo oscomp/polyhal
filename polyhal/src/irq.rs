@@ -25,8 +25,6 @@
 //! let enabled = IRQ::int_enabled();
 //! ```
 
-super::define_arch_mods!();
-
 pub struct IRQ;
 
 impl IRQ {}
@@ -37,5 +35,9 @@ pub struct IRQVector(usize);
 impl IRQVector {
     pub const fn new(value: usize) -> Self {
         Self(value)
+    }
+
+    pub const fn raw(&self) -> usize {
+        self.0
     }
 }

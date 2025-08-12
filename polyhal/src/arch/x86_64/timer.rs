@@ -1,4 +1,4 @@
-use core::{arch::x86_64::_rdtsc, hint::spin_loop, time::Duration};
+use core::{hint::spin_loop, time::Duration};
 
 use raw_cpuid::CpuId;
 use x2apic::lapic::{TimerDivide, TimerMode};
@@ -6,7 +6,7 @@ use x86_64::instructions::port::Port;
 
 use crate::arch::x86_64::apic::local_apic;
 
-use super::current_time;
+use crate::timer::current_time;
 
 static mut CPU_FREQ_MHZ: u64 = 4_000_000_000;
 static mut LAPIC_FREQ: u64 = 4_000_000_000;
@@ -142,3 +142,5 @@ pub(crate) fn timer_wait(duration: Duration) {
         }
     }
 }
+
+ph_ctor!(ARCH_INIT_TIMER, crate::ctor::CtorType::Platform, init);

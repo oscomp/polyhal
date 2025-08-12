@@ -4,7 +4,7 @@ use aarch64_cpu::registers::{Writeable, ESR_EL1, FAR_EL1, VBAR_EL1};
 use tock_registers::interfaces::Readable;
 
 use crate::trapframe::TrapFrame;
-use polyhal::irq::{get_irq, TIMER_IRQ_NUM};
+use polyhal::arch::aarch64::irq::{get_irq, TIMER_IRQ_NUM};
 
 use super::{EscapeReason, TrapType};
 

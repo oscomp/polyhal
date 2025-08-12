@@ -1,6 +1,6 @@
 use riscv::register::sstatus::{self, clear_sie, set_sie};
 
-use crate::components::irq::{IRQVector, IRQ};
+use crate::irq::{IRQVector, IRQ};
 
 /// Implement IRQ operations for the IRQ interface.
 impl IRQ {
@@ -41,7 +41,7 @@ impl IRQVector {
     #[inline]
     pub fn irq_num(&self) -> usize {
         log::warn!("ack not implemented in riscv platform yet");
-        self.0
+        self.raw()
     }
 
     /// Acknowledge the irq

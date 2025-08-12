@@ -44,3 +44,5 @@ pub fn init() {
     set_next_timer(Duration::ZERO);
     log::info!("initialize timer interrupt");
 }
+
+ph_ctor!(ARCH_INIT_TIMER, crate::ctor::CtorType::Platform, init);

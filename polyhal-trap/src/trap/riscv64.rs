@@ -22,9 +22,6 @@ pub(crate) fn init() {
         stvec.set_trap_mode(stvec::TrapMode::Direct);
         stvec::write(stvec);
     }
-
-    // Initialize the timer component
-    polyhal::timer::init();
 }
 
 // 内核中断回调

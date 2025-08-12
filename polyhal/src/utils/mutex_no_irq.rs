@@ -1,7 +1,7 @@
 use core::ops::{Deref, DerefMut};
 use spin::{Mutex, MutexGuard};
 
-use crate::components::irq::IRQ;
+use crate::irq::IRQ;
 
 pub struct MutexNoIrq<T: ?Sized> {
     lock: Mutex<T>,

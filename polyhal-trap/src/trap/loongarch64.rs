@@ -9,7 +9,7 @@ use loongArch64::register::estat::{self, Exception, Trap};
 use loongArch64::register::{
     badv, ecfg, eentry, prmd, pwch, pwcl, stlbps, ticlr, tlbidx, tlbrehi, tlbrentry,
 };
-use polyhal::irq::TIMER_IRQ;
+use polyhal::arch::loongarch64::irq::TIMER_IRQ;
 use unaligned::emulate_load_store_insn;
 
 #[naked]

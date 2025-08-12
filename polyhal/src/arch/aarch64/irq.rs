@@ -2,8 +2,8 @@ use aarch64_cpu::registers::{Readable, DAIF};
 use arm_gicv2::{translate_irq, InterruptType};
 use arm_gicv2::{GicCpuInterface, GicDistributor};
 
-use crate::components::irq::{IRQVector, IRQ};
 use crate::ctor::CtorType;
+use crate::irq::{IRQVector, IRQ};
 use crate::utils::MutexNoIrq;
 use crate::PhysAddr;
 
@@ -38,19 +38,19 @@ pub(crate) fn init() {
 impl IRQVector {
     /// Get the irq number in this vector
     pub const fn irq_num(&self) -> usize {
-        self.0 & 0x3ff
+        self.raw() & 0x3ff
     }
 
     /// Acknowledge the irq
     pub fn ack(&self) {
-        GICC.eoi(self.0 as u32);
+        GICC.eoi(self.raw() as u32);
     }
 }
 
 /// Get the irq Vector that was
 #[inline]
 pub fn get_irq() -> IRQVector {
-    IRQVector(GICC.iar() as _)
+    IRQVector::new(GICC.iar() as _)
 }
 
 /// Implement IRQ operations for the IRQ interface.

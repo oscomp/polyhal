@@ -1,5 +1,5 @@
 use crate::arch::x86_64::apic::{io_apic, local_apic};
-use crate::components::irq::{IRQVector, IRQ};
+use crate::irq::{IRQVector, IRQ};
 
 /// Implement IRQ operations for the IRQ interface.
 impl IRQ {
@@ -43,7 +43,7 @@ impl IRQVector {
     /// Get the irq number in this vector
     #[inline]
     pub fn irq_num(&self) -> usize {
-        self.0
+        self.raw()
     }
 
     /// Acknowledge the irq

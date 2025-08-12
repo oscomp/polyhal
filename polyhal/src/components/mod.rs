@@ -4,10 +4,8 @@
 
 pub mod common;
 pub mod instruction;
-pub mod irq;
 pub mod kcontext;
 pub mod mem;
 pub mod multicore;
-pub mod timer;
 
 use polyhal_macro::define_arch_mods;

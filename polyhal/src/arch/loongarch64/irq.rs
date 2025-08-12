@@ -1,6 +1,6 @@
 use loongArch64::register::crmd;
 
-use crate::components::irq::IRQ;
+use crate::irq::IRQ;
 
 /// Timer IRQ of loongarch64
 pub const TIMER_IRQ: usize = 11;

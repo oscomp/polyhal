@@ -60,3 +60,5 @@ pub fn init() {
         | LineBasedInterrupt::HWI0;
     ecfg::set_lie(inter);
 }
+
+ph_ctor!(ARCH_INIT_TIMER, crate::ctor::CtorType::Platform, init);
