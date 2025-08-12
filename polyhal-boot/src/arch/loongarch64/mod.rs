@@ -1,11 +1,12 @@
 use core::arch::global_asm;
 use loongArch64::register::euen;
+use polyhal::info::BOOT_INFO;
 use polyhal::percpu::set_local_thread_pointer;
 use polyhal::{
     consts::QEMU_DTB_ADDR,
     ctor::{ph_init_iter, CtorType},
     hart_id,
-    mem::{init_dtb_once, parse_system_info},
+    mem::parse_system_info,
 };
 
 global_asm!(
@@ -18,7 +19,7 @@ global_asm!(
 ///
 /// This function will be called after assembly boot stage.
 pub fn rust_tmp_main(hart_id: usize) {
-    let _ = init_dtb_once(QEMU_DTB_ADDR);
+    let _ = BOOT_INFO.get_mut().parse_dtb(QEMU_DTB_ADDR);
     set_local_thread_pointer(hart_id);
 
     // Initialize CPU Configuration.

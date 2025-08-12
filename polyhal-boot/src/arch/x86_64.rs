@@ -9,7 +9,8 @@ use polyhal::{
     consts::VIRT_ADDR_START,
     ctor::{ph_init_iter, CtorType},
     display_info, hart_id,
-    mem::{add_memory_region, parse_system_info},
+    info::BOOT_INFO,
+    mem::parse_system_info,
     percpu::set_local_thread_pointer,
 };
 use raw_cpuid::CpuId;
@@ -118,7 +119,9 @@ fn rust_tmp_main(magic: usize, mboot_ptr: usize) {
                 if mm.memory_type() != MemoryType::Available || mm_end < 0x100000 {
                     return;
                 }
-                add_memory_region(mm.base_address() as _, mm_end as _);
+                BOOT_INFO
+                    .get_mut()
+                    .add_memory_region(mm.base_address() as _, mm_end as _);
             });
         }
 

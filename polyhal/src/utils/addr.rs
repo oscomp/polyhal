@@ -155,6 +155,9 @@ impl VirtAddr {
     }
 }
 
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub struct KernelAddr(usize);
+
 impl Add<usize> for PhysAddr {
     type Output = Self;
 

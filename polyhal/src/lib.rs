@@ -16,6 +16,7 @@ pub mod ctor;
 pub mod debug_console;
 #[macro_use]
 pub mod utils;
+pub mod info;
 
 mod arch;
 pub use arch::*;

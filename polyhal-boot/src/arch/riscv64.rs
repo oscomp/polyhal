@@ -2,7 +2,8 @@ use core::{arch::naked_asm, ptr::addr_of_mut};
 use polyhal::{
     consts::VIRT_ADDR_START,
     ctor::{ph_init_iter, CtorType},
-    mem::{init_dtb_once, parse_system_info},
+    info::BOOT_INFO,
+    mem::parse_system_info,
     pagetable::{PTEFlags, PTE, TLB},
     percpu::set_local_thread_pointer,
     PageTable, PhysAddr,
@@ -98,7 +99,7 @@ unsafe extern "C" fn _secondary_start() -> ! {
 
 unsafe extern "C" fn rust_main(hartid: usize, dt: PhysAddr) {
     super::clear_bss();
-    let _ = init_dtb_once(dt);
+    let _ = BOOT_INFO.get_mut().parse_dtb(dt);
     // Initialize CPU Configuration.
     set_local_thread_pointer(hartid);
     init_cpu();

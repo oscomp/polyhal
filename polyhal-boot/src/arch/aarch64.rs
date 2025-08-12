@@ -4,7 +4,8 @@ use polyhal::percpu::set_local_thread_pointer;
 use polyhal::{
     consts::VIRT_ADDR_START,
     ctor::{ph_init_iter, CtorType},
-    mem::{init_dtb_once, parse_system_info},
+    info::BOOT_INFO,
+    mem::parse_system_info,
     pagetable::{PTEFlags, PAGE_SIZE, PTE, TLB},
     PageTable, PhysAddr,
 };
@@ -124,7 +125,7 @@ unsafe extern "C" fn _secondary_start() -> ! {
 
 pub fn rust_tmp_main(hartid: usize, dt: PhysAddr) {
     super::clear_bss();
-    let _ = init_dtb_once(dt);
+    let _ = BOOT_INFO.get_mut().parse_dtb(dt);
     set_local_thread_pointer(hartid);
     init_cpu();
     ph_init_iter(CtorType::Cpu).for_each(|x| (x.func)());
