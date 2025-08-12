@@ -28,7 +28,7 @@ static IO_APIC: Once<MutexNoIrq<IoApic>> = Once::new();
 
 pub fn local_apic<'a>() -> &'a mut LocalApic {
     // It's safe as LAPIC is per-cpu.
-    unsafe { LOCAL_APIC.as_mut().unwrap() }
+    unsafe { (*&raw mut LOCAL_APIC).as_mut().unwrap() }
 }
 
 /// Get the interrupt controller
