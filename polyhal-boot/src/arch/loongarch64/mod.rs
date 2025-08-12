@@ -1,11 +1,11 @@
 use core::arch::global_asm;
 use loongArch64::register::euen;
+use polyhal::arch::loongarch64::hart_id;
 use polyhal::info::BOOT_INFO;
 use polyhal::percpu::set_local_thread_pointer;
 use polyhal::{
     consts::QEMU_DTB_ADDR,
     ctor::{ph_init_iter, CtorType},
-    hart_id,
     mem::parse_system_info,
 };
 

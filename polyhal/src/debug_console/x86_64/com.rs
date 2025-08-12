@@ -1,5 +1,5 @@
 //! Uart 16550.
-use crate::arch::get_com_port;
+use crate::arch::x86_64::get_com_port;
 use crate::utils::MutexNoIrq;
 use uart_16550::SerialPort;
 

@@ -17,7 +17,7 @@ pub fn init() {
     }
     #[cfg(target_arch = "x86_64")]
     {
-        if let Some(addr) = polyhal::acpi::get_pci_base() {
+        if let Some(addr) = polyhal::arch::x86_64::acpi::get_pci_base() {
             enumerate_pci(addr.get_mut_ptr());
         }
     }

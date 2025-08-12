@@ -3,7 +3,7 @@ use core::ptr::NonNull;
 use arrayvec::ArrayVec;
 use fdt_parser::{Fdt, FdtError};
 
-use crate::{consts::VIRT_ADDR_START, utils::BootLock, PhysAddr, MEM_VECTOR_CAPACITY};
+use crate::{arch::MEM_VECTOR_CAPACITY, consts::VIRT_ADDR_START, utils::BootLock, PhysAddr};
 
 /// Boot Information
 pub static BOOT_INFO: BootLock<BootInfo> = BootLock::new(BootInfo::new());

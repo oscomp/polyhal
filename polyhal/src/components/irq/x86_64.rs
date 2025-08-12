@@ -1,4 +1,4 @@
-use crate::arch::apic::{io_apic, local_apic};
+use crate::arch::x86_64::apic::{io_apic, local_apic};
 use crate::components::irq::{IRQVector, IRQ};
 
 /// Implement IRQ operations for the IRQ interface.

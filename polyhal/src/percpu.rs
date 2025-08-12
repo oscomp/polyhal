@@ -2,7 +2,8 @@
 //!
 //!
 
-super::define_arch_mods!();
+#[cfg(target_arch = "x86_64")]
+use crate::arch::x86_64::percpu::PerCPUReserved;
 use crate::consts::VIRT_ADDR_START;
 use core::ptr::copy_nonoverlapping;
 
@@ -99,7 +100,7 @@ pub fn set_local_thread_pointer(cpu_id: usize) {
                 percpu_reserved.valid_ptr = tp;
             } else if #[cfg(any(target_arch = "riscv32", target_arch = "riscv64"))] {
                 core::arch::asm!("mv gp, {}", in(reg) tp);
-                crate::arch::CPU_ID.write(cpu_id);
+                crate::arch::riscv64::CPU_ID.write(cpu_id);
             } else if #[cfg(target_arch = "aarch64")] {
                 core::arch::asm!("msr TPIDR_EL1, {}", in(reg) tp);
             } else if #[cfg(target_arch = "loongarch64")] {

@@ -4,7 +4,7 @@ use raw_cpuid::CpuId;
 use x2apic::lapic::{TimerDivide, TimerMode};
 use x86_64::instructions::port::Port;
 
-use crate::arch::apic::local_apic;
+use crate::arch::x86_64::apic::local_apic;
 
 use super::current_time;
 

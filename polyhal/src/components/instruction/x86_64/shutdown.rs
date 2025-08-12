@@ -2,7 +2,7 @@ use core::hint::spin_loop;
 
 use x86_64::instructions::port::PortWriteOnly;
 
-use crate::acpi::get_pm1a_addr;
+use crate::arch::x86_64::acpi::get_pm1a_addr;
 
 #[inline]
 pub fn shutdown() -> ! {

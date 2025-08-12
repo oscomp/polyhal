@@ -4,11 +4,12 @@ use multiboot::{
     information::{MemoryManagement, MemoryType, Multiboot, PAddr},
 };
 use polyhal::{
+    arch::hart_id,
     bits,
     common::get_cpu_num,
     consts::VIRT_ADDR_START,
     ctor::{ph_init_iter, CtorType},
-    display_info, hart_id,
+    display_info,
     info::BOOT_INFO,
     mem::parse_system_info,
     percpu::set_local_thread_pointer,
@@ -137,7 +138,7 @@ fn rust_tmp_main(magic: usize, mboot_ptr: usize) {
     });
 
     set_local_thread_pointer(hart_id());
-    polyhal::acpi::init();
+    polyhal::arch::x86_64::acpi::init();
 
     parse_system_info();
     mboot.as_ref().inspect(|mboot| {

@@ -1,7 +1,7 @@
 use core::time::Duration;
 
 use crate::{
-    apic::{local_apic, raw_apic_id},
+    arch::x86_64::apic::{local_apic, raw_apic_id},
     consts::VIRT_ADDR_START,
     pagetable::PAGE_SIZE,
     timer::timer_wait,

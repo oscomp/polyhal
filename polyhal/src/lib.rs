@@ -18,10 +18,11 @@ pub mod debug_console;
 pub mod utils;
 pub mod info;
 
-mod arch;
-pub use arch::*;
+pub mod arch;
+pub use arch::consts;
 mod components;
 pub mod mem;
+pub mod percpu;
 pub use components::*;
 pub mod pagetable;
 

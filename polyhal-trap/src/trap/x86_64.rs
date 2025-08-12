@@ -9,11 +9,11 @@ use core::{
     mem::{offset_of, size_of},
 };
 use polyhal::{
-    apic::{local_apic, vectors::*},
+    arch::x86_64::apic::{local_apic, vectors::*},
+    arch::x86_64::gdt::{set_tss_kernel_sp, GdtStruct},
+    arch::x86_64::percpu::PerCPUReserved,
     consts::{PIC_VECTOR_OFFSET, SYSCALL_VECTOR},
-    gdt::{set_tss_kernel_sp, GdtStruct},
     irq,
-    percpu::PerCPUReserved,
 };
 use x86::irq::*;
 use x86_64::{
@@ -283,9 +283,9 @@ pub fn init_syscall() {
 
 pub fn init() {
     // Init PerCPU Information.
-    polyhal::gdt::init();
-    polyhal::idt::init();
-    polyhal::apic::init();
+    polyhal::arch::x86_64::gdt::init();
+    polyhal::arch::x86_64::idt::init();
+    polyhal::arch::x86_64::apic::init();
     // Init allocator
     init_syscall();
 }
