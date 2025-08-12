@@ -9,12 +9,13 @@ use crate::arch::x86_64::apic::local_apic;
 use super::current_time;
 
 static mut CPU_FREQ_MHZ: u64 = 4_000_000_000;
+static mut LAPIC_FREQ: u64 = 4_000_000_000;
 const PIT_CH2_PORT: u16 = 0x42;
 const PIT_CMD_PORT: u16 = 0x43;
 const PC_SPEAKER_PORT: u16 = 0x61;
 
-/// PIT(Programmable Interval Timer) frequency, 1ms
-const PIT_FREQ: u16 = (1193182 / 1000) as u16;
+/// PIT(Programmable Interval Timer) frequency, 10ms
+const PIT_FREQ: u16 = (1193182 / 100) as u16;
 
 /// Get ticks from system clock
 ///
@@ -50,8 +51,8 @@ pub fn set_next_timer(next: Duration) {
     let lapic = local_apic();
     unsafe {
         lapic.set_timer_initial(
-            (interval.as_secs() * get_freq()
-                + interval.subsec_nanos() as u64 * get_freq() / 1_000_000_000) as _,
+            (interval.as_secs() * LAPIC_FREQ
+                + interval.subsec_nanos() as u64 * LAPIC_FREQ / 1_000_000_000) as u32,
         );
     }
 }
@@ -68,7 +69,7 @@ pub(crate) fn init() {
     }
     unsafe {
         let lapic = local_apic();
-        lapic.set_timer_mode(TimerMode::Periodic);
+        lapic.set_timer_mode(TimerMode::OneShot);
         lapic.set_timer_divide(TimerDivide::Div1);
         lapic.enable_timer();
 
@@ -80,10 +81,12 @@ pub(crate) fn init() {
         lapic.set_timer_initial(0xFFFF_FFFF);
 
         // Get CPU Frequency: (end - start) / 10ms
-        let _start = _rdtsc();
+        let start = lapic.timer_current();
         timer_wait(Duration::from_millis(10));
-        let _end = _rdtsc();
-        lapic.set_timer_mode(TimerMode::TscDeadline);
+        let end = lapic.timer_current();
+        LAPIC_FREQ = ((start - end) * 100) as _;
+        lapic.set_timer_mode(TimerMode::OneShot);
+        lapic.set_timer_divide(TimerDivide::Div1);
         lapic.set_timer_initial(0);
     }
 }
@@ -125,7 +128,7 @@ pub(crate) fn timer_wait(duration: Duration) {
         value = pc_speaker.read();
         pc_speaker.write(value | 1);
     }
-    for _ in 0..duration.as_millis() {
+    for _ in 0..duration.as_millis() / 10 {
         unsafe {
             // Set PIT2 one-shot mode
             pit_cmd.write(0b10110010);
