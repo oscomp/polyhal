@@ -8,12 +8,15 @@
     .equ    LA_IOCSR_MAIL_BUF2,   0x1030
     .equ    LA_IOCSR_MAIL_BUF3,   0x1038
 
+    .equ    CSR_DMW1_MAT,         0x10
+    .equ    CSR_DMW1_PLV0,        0x1
+
     .macro INIT_DMW
-        ori         $t0, $zero, 0x1     # CSR_DMW1_PLV0
+        ori         $t0, $zero, CSR_DMW1_PLV0
         lu52i.d     $t0, $t0, -2048     # UC, PLV0, 0x8000 xxxx xxxx xxxx
         csrwr       $t0, LA_CSR_DMW0
 
-        ori         $t0, $zero, 0x11    # CSR_DMW1_MAT | CSR_DMW1_PLV0
+        ori         $t0, $zero, CSR_DMW1_PLV0 | CSR_DMW1_MAT
         lu52i.d     $t0, $t0, -1792     # CA, PLV0, 0x9000 xxxx xxxx xxxx
         csrwr       $t0, LA_CSR_DMW1
     .endm
@@ -23,12 +26,12 @@
         csrwr   \REG, \CSR
     .endm
 
-    .section .text
+    .section .text.entry
     .global _start
     .type   _start, @function
 _start:
-    bl          clear_bss
     INIT_DMW
+    bl          clear_bss
     # Enable PG
     CSRWRI      LA_CSR_CRMD, $t0, 0xb0      # PLV=0, IE=0, PG=1
     CSRWRI      LA_CSR_PRMD, $t0, 0x00      # PLV=0, PIE=0, PWE=0

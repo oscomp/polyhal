@@ -6,6 +6,9 @@ all:
 example:
 	make -C example run
 
+example-build:
+	make -C example build
+
 boot-iso:
 	make -C example boot-iso
 

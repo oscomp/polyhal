@@ -1,11 +1,12 @@
 use core::{
     hint::spin_loop,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::{AtomicBool, AtomicU32, Ordering},
 };
 
 use polyhal::{
     common::get_cpu_num,
     ctor::{ph_init_iter, CtorType},
+    info::BOOT_INFO,
     println,
 };
 
@@ -44,6 +45,8 @@ fn call_real_main(hartid: usize) {
     // polyhal::multicore::boot_core(cpuid, addr, sp_top);
     static IS_BOOT: AtomicBool = AtomicBool::new(true);
     static INIT_DONE: AtomicBool = AtomicBool::new(false);
+    static BOOTED_CORE: AtomicU32 = AtomicU32::new(1);
+
     extern "Rust" {
         fn _secondary_start();
         pub(crate) fn _main_for_arch(hartid: usize);
@@ -63,6 +66,12 @@ fn call_real_main(hartid: usize) {
         });
         polyhal::println!();
 
+        while BOOTED_CORE.load(Ordering::SeqCst) != get_cpu_num() as u32 {
+            spin_loop();
+        }
+
+        // Boot Done
+        BOOT_INFO.lock_forever();
         // Run Kernel's Contructors Before Droping Into Kernel.
         ph_init_iter(CtorType::KernelService).for_each(|x| (x.func)());
         ph_init_iter(CtorType::Normal).for_each(|x| (x.func)());
@@ -72,6 +81,7 @@ fn call_real_main(hartid: usize) {
             _main_for_arch(hartid);
         }
     } else {
+        BOOTED_CORE.fetch_add(1, Ordering::AcqRel);
         while !INIT_DONE.load(Ordering::SeqCst) {
             spin_loop();
         }

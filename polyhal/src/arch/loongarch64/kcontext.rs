@@ -1,3 +1,4 @@
+#[cfg(feature = "fp_simd")]
 use core::mem::offset_of;
 use core::{
     arch::naked_asm,

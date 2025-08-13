@@ -196,9 +196,8 @@ fn loongarch64_trap_handler(tf: &mut TrapFrame) -> TrapType {
             TrapType::Breakpoint
         }
         Trap::Exception(Exception::AddressNotAligned) => {
-            // error!("address not aligned: {:#x?}", tf);
             unsafe { emulate_load_store_insn(tf) }
-            TrapType::Unknown
+            TrapType::Internal
         }
         Trap::Interrupt(_) => {
             let irq_num: usize = estat.is().trailing_zeros() as usize;

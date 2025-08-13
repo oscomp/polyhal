@@ -100,6 +100,7 @@ unsafe extern "C" fn _secondary_start() -> ! {
 unsafe extern "C" fn rust_main(hartid: usize, dt: PhysAddr) {
     super::clear_bss();
     let _ = BOOT_INFO.get_mut().parse_dtb(dt);
+    ph_init_iter(CtorType::Primary).for_each(|x| (x.func)());
     // Initialize CPU Configuration.
     set_local_thread_pointer(hartid);
     init_cpu();

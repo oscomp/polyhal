@@ -1,4 +1,4 @@
-use core::ptr::NonNull;
+use core::{ptr::NonNull, sync::atomic::AtomicBool};
 
 use arrayvec::ArrayVec;
 use fdt_parser::{Fdt, FdtError};
@@ -32,6 +32,10 @@ impl BootInfo {
     }
 
     pub fn init_once(&mut self) {
+        static INITED: AtomicBool = AtomicBool::new(false);
+        if INITED.swap(true, core::sync::atomic::Ordering::SeqCst) {
+            return;
+        }
         extern "C" {
             fn _skernel();
             fn _end();
@@ -101,7 +105,7 @@ impl BootInfo {
         self.available.push((start, end - start));
     }
 
-    /// Allocate Memory From [MEM_AREA]
+    /// Allocate Memory From [BootInfo]
     ///
     /// # Safety
     ///

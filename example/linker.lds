@@ -11,7 +11,7 @@ SECTIONS
     .text ALIGN(4K): {
         *(.multiboot .multiboot.*)
         stext = .;
-        *(.text.entry)
+        KEEP(*(.text.entry .text.entry.*))
         *(.text .text.*)
         etext = .;
     }

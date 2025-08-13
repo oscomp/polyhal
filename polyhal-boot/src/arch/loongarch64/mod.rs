@@ -20,12 +20,11 @@ global_asm!(
 /// This function will be called after assembly boot stage.
 pub fn rust_tmp_main(hart_id: usize) {
     let _ = BOOT_INFO.get_mut().parse_dtb(QEMU_DTB_ADDR);
+    ph_init_iter(CtorType::Primary).for_each(|x| (x.func)());
     set_local_thread_pointer(hart_id);
-
     // Initialize CPU Configuration.
     init_cpu();
     ph_init_iter(CtorType::Cpu).for_each(|x| (x.func)());
-
     parse_system_info();
     ph_init_iter(CtorType::Platform).for_each(|x| (x.func)());
     ph_init_iter(CtorType::HALDriver).for_each(|x| (x.func)());
