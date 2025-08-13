@@ -1,3 +1,6 @@
+mod temptrap;
+mod unaligned;
+
 use core::arch::global_asm;
 use loongArch64::register::euen;
 use polyhal::arch::loongarch64::hart_id;
@@ -19,6 +22,7 @@ global_asm!(
 ///
 /// This function will be called after assembly boot stage.
 pub fn rust_tmp_main(hart_id: usize) {
+    temptrap::init();
     let _ = BOOT_INFO.get_mut().parse_dtb(QEMU_DTB_ADDR);
     ph_init_iter(CtorType::Primary).for_each(|x| (x.func)());
     set_local_thread_pointer(hart_id);
@@ -43,6 +47,7 @@ fn init_cpu() {
 
 /// The entry point for the second core.
 pub fn rust_secondary_main() {
+    temptrap::init();
     set_local_thread_pointer(hart_id());
     // Initialize CPU Configuration.
     init_cpu();

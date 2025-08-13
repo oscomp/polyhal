@@ -11,6 +11,13 @@
     .equ    CSR_DMW1_MAT,         0x10
     .equ    CSR_DMW1_PLV0,        0x1
 
+    .equ    MAT_SUC,              0             // Strongly-ordered UnCached
+    .equ    MAT_CC,               1             // Coherent Cached
+    .equ    MAT_WUC,              2             // Weakly-ordered UnCached
+
+    .equ    CSR_CRMD_PG,          1 << 4
+    .equ    CSR_CRMD_DATF,        (MAT_CC << 5)      // MAT of Fetch
+    .equ    CSR_CRMD_DATM,        (MAT_CC << 7)            // MAT of Memory Load/Store
     .macro INIT_DMW
         ori         $t0, $zero, CSR_DMW1_PLV0
         lu52i.d     $t0, $t0, -2048     # UC, PLV0, 0x8000 xxxx xxxx xxxx
@@ -19,6 +26,11 @@
         ori         $t0, $zero, CSR_DMW1_PLV0 | CSR_DMW1_MAT
         lu52i.d     $t0, $t0, -1792     # CA, PLV0, 0x9000 xxxx xxxx xxxx
         csrwr       $t0, LA_CSR_DMW1
+    .endm
+    .macro INIT_CSR
+        CSRWRI      LA_CSR_CRMD, $t0, CSR_CRMD_DATF | CSR_CRMD_DATM | CSR_CRMD_PG
+        CSRWRI      LA_CSR_PRMD, $t0, 0x00                            # PLV=0, PIE=0, PWE=0
+        CSRWRI      LA_CSR_EUEN, $t0, 0x00                            # FPE=0, SXE=0, ASXE=0, BTE=0
     .endm
 
     .macro CSRWRI  CSR, REG, VALUE
@@ -32,10 +44,7 @@
 _start:
     INIT_DMW
     bl          clear_bss
-    # Enable PG
-    CSRWRI      LA_CSR_CRMD, $t0, 0xb0      # PLV=0, IE=0, PG=1
-    CSRWRI      LA_CSR_PRMD, $t0, 0x00      # PLV=0, PIE=0, PWE=0
-    CSRWRI      LA_CSR_EUEN, $t0, 0x00      # FPE=0, SXE=0, ASXE=0, BTE=0
+    INIT_CSR
 
     la.global   $sp, bstack_top
     csrrd       $a0, 0x20           # cpuid
@@ -47,7 +56,8 @@ _start:
     .global _secondary_start
     .type _secondary_start, @function
 _secondary_start:
-    INIT_DMW
+    INIT_DMW 
+    INIT_CSR
 
     li.w        $t0, LA_IOCSR_MAIL_BUF1    # Load Stack Pointer From Message Buffer
     iocsrrd.d   $sp, $t0

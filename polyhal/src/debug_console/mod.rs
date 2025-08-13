@@ -144,6 +144,6 @@ impl DebugConsole {
 #[cfg(feature = "logger")]
 ph_ctor!(
     CONSOLE_INIT,
-    crate::ctor::CtorType::HALDriver,
+    crate::ctor::CtorType::KernelService,
     DebugConsole::log_init
 );

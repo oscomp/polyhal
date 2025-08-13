@@ -112,14 +112,14 @@ impl BootInfo {
     /// - Ensure call this function in the primary core when booting
     /// - Ensure no alignment required
     pub fn alloc(&mut self, alloc_size: usize) -> *mut u8 {
-        for (start, size) in self.available.iter_mut() {
-            if *size > alloc_size {
-                let ptr = *start;
-                *start += alloc_size;
-                *size -= alloc_size;
-                return ptr as _;
-            }
-        }
-        unreachable!()
+        let (start, size) = self
+            .available
+            .iter_mut()
+            .find(|(_, size)| *size > alloc_size)
+            .unwrap();
+        let res = *start as _;
+        *start += alloc_size;
+        *size -= alloc_size;
+        res
     }
 }

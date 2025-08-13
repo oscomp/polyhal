@@ -20,7 +20,6 @@ pub mod info;
 
 pub mod arch;
 pub use arch::consts;
-pub mod barrier;
 pub mod common;
 pub mod instruction;
 pub mod irq;

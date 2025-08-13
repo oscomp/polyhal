@@ -63,6 +63,7 @@ fn kernel_interrupt(ctx: &mut TrapFrame, trap_type: TrapType) {
             timer::set_next_timer(next);
             log::info!("Timer: {:#x?}  next: {:#x?}", TIMER_TICKS.read(), next);
         }
+        Internal => {}
         _ => {
             log::warn!("unsuspended trap type: {:?}", trap_type);
         }

@@ -1,4 +1,3 @@
-pub mod barrier;
 pub mod consts;
 pub mod instruction;
 pub mod irq;

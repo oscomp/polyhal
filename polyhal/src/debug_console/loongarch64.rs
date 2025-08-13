@@ -1,3 +1,5 @@
+use core::hint::spin_loop;
+
 use crate::utils::MutexNoIrq;
 use ns16550a::Uart;
 
@@ -16,9 +18,13 @@ impl DebugConsole {
     pub fn putchar(ch: u8) {
         let com = COM1.lock();
         if ch == b'\n' {
-            while com.put(b'\r').is_none() {}
+            while com.put(b'\r').is_none() {
+                spin_loop();
+            }
         }
-        while com.put(ch).is_none() {}
+        while com.put(ch).is_none() {
+            spin_loop();
+        }
     }
 
     /// read a byte, return -1 if nothing exists.
