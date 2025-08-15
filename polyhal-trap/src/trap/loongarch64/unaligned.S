@@ -22,10 +22,10 @@
  */
 
 .text
-.global  temp_unaligned_read
+.global  unaligned_read
 .p2align        2
-.type   temp_unaligned_read,@function
-temp_unaligned_read:
+.type   unaligned_read,@function
+unaligned_read:
 	beqz	$a2, 5f
 
 	li.w	$t1, 8
@@ -68,10 +68,11 @@ temp_unaligned_read:
  */
 
 .text
-.global  temp_unaligned_write
+.global  unaligned_write
 .p2align        2
-.type   temp_unaligned_write,@function
-temp_unaligned_write:
+.type   unaligned_write,@function
+
+unaligned_write:
 	beqz	$a2, 3f
 
 	li.w	$t0, 0

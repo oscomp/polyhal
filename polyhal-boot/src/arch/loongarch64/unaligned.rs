@@ -3,8 +3,8 @@ use loongArch64::register::badv;
 use core::arch::asm;
 
 extern "C" {
-    fn unaligned_read(addr: u64, value: &mut u64, n: u64, symbol: u32) -> i32;
-    fn unaligned_write(addr: u64, value: u64, n: u64) -> i32;
+    fn temp_unaligned_read(addr: u64, value: &mut u64, n: u64, symbol: u32) -> i32;
+    fn temp_unaligned_write(addr: u64, value: u64, n: u64) -> i32;
 }
 
 core::arch::global_asm!(include_str!("unaligned.S"));
@@ -528,7 +528,7 @@ pub unsafe fn emulate_load_store_insn(pt_regs: &mut [usize; 32]) {
     rd = (la_inst & 0x1f) as usize;
 
     if (la_inst >> 22) == LDD_OP || (la_inst >> 24) == LDPTRD_OP || (la_inst >> 15) == LDXD_OP {
-        res = unaligned_read(addr, &mut value, 8, 1);
+        res = temp_unaligned_read(addr, &mut value, 8, 1);
         if res < 0 {
             panic!("Address Error @ {:#x}", addr)
         }
@@ -537,25 +537,25 @@ pub unsafe fn emulate_load_store_insn(pt_regs: &mut [usize; 32]) {
         || (la_inst >> 24) == LDPTRW_OP
         || (la_inst >> 15) == LDXW_OP
     {
-        res = unaligned_read(addr, &mut value, 4, 1);
+        res = temp_unaligned_read(addr, &mut value, 4, 1);
         if res < 0 {
             panic!("Address Error @ {:#x}", addr)
         }
         pt_regs[rd] = value as usize;
     } else if (la_inst >> 22) == LDWU_OP || (la_inst >> 15) == LDXWU_OP {
-        res = unaligned_read(addr, &mut value, 4, 0);
+        res = temp_unaligned_read(addr, &mut value, 4, 0);
         if res < 0 {
             panic!("Address Error @ {:#x}", addr)
         }
         pt_regs[rd] = value as usize;
     } else if (la_inst >> 22) == LDH_OP || (la_inst >> 15) == LDXH_OP {
-        res = unaligned_read(addr, &mut value, 2, 1);
+        res = temp_unaligned_read(addr, &mut value, 2, 1);
         if res < 0 {
             panic!("Address Error @ {:#x}", addr)
         }
         pt_regs[rd] = value as usize;
     } else if (la_inst >> 22) == LDHU_OP || (la_inst >> 15) == LDXHU_OP {
-        res = unaligned_read(addr, &mut value, 2, 0);
+        res = temp_unaligned_read(addr, &mut value, 2, 0);
         if res < 0 {
             panic!("Address Error @ {:#x}", addr)
         }
@@ -565,34 +565,34 @@ pub unsafe fn emulate_load_store_insn(pt_regs: &mut [usize; 32]) {
         || (la_inst >> 15) == STXD_OP
     {
         value = pt_regs[rd] as u64;
-        res = unaligned_write(addr, value, 8);
+        res = temp_unaligned_write(addr, value, 8);
     } else if (la_inst >> 22) == STW_OP
         || (la_inst >> 24) == STPTRW_OP
         || (la_inst >> 15) == STXW_OP
     {
         value = pt_regs[rd] as u64;
-        res = unaligned_write(addr, value, 4);
+        res = temp_unaligned_write(addr, value, 4);
     } else if (la_inst >> 22) == STH_OP || (la_inst >> 15) == STXH_OP {
         value = pt_regs[rd] as u64;
-        res = unaligned_write(addr, value, 2);
+        res = temp_unaligned_write(addr, value, 2);
     } else if (la_inst >> 22) == FLDD_OP || (la_inst >> 15) == FLDXD_OP {
-        res = unaligned_read(addr, &mut value, 8, 1);
+        res = temp_unaligned_read(addr, &mut value, 8, 1);
         if res < 0 {
             panic!("Address Error @ {:#x}", addr)
         }
         write_fpr(rd, value);
     } else if (la_inst >> 22) == FLDS_OP || (la_inst >> 15) == FLDXS_OP {
-        res = unaligned_read(addr, &mut value, 4, 1);
+        res = temp_unaligned_read(addr, &mut value, 4, 1);
         if res < 0 {
             panic!("Address Error @ {:#x}", addr)
         }
         write_fpr(rd, value);
     } else if (la_inst >> 22) == FSTD_OP || (la_inst >> 15) == FSTXD_OP {
         value = read_fpr(rd);
-        res = unaligned_write(addr, value, 8);
+        res = temp_unaligned_write(addr, value, 8);
     } else if (la_inst >> 22) == FSTS_OP || (la_inst >> 15) == FSTXS_OP {
         value = read_fpr(rd);
-        res = unaligned_write(addr, value, 4);
+        res = temp_unaligned_write(addr, value, 4);
     }
 
     if res < 0 {

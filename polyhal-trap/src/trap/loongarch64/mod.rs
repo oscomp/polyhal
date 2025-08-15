@@ -4,13 +4,23 @@ mod unaligned;
 
 use super::{EscapeReason, TrapType};
 use crate::trapframe::TrapFrame;
-use core::arch::naked_asm;
+use core::arch::{global_asm, naked_asm};
 use loongArch64::register::estat::{self, Exception, Trap};
 use loongArch64::register::{
-    badv, ecfg, eentry, prmd, pwch, pwcl, stlbps, ticlr, tlbidx, tlbrehi, tlbrentry,
+    badv, crmd, ecfg, eentry, prmd, pwch, pwcl, stlbps, ticlr, tlbidx, tlbrehi, tlbrentry, tlbrsave,
 };
 use polyhal::arch::loongarch64::irq::TIMER_IRQ;
+use polyhal::println;
 use unaligned::emulate_load_store_insn;
+
+global_asm!(
+    include_str!("trap.S"),
+    trapframe_size = const crate::trapframe::TRAPFRAME_SIZE,
+    user_vec = sym user_vec,
+    trap_handler = sym loongarch64_trap_handler,
+);
+
+global_asm!(include_str!("tlbex.S"));
 
 #[naked]
 pub unsafe extern "C" fn user_vec() {
@@ -93,56 +103,6 @@ pub fn run_user_task(cx: &mut TrapFrame) -> EscapeReason {
     loongarch64_trap_handler(cx).into()
 }
 
-#[naked]
-pub unsafe extern "C" fn trap_vector_base() {
-    naked_asm!(
-        includes_trap_macros!(),
-        "
-            .balign 4096
-            // Check whether it was from user privilege.
-            csrwr   $sp, KSAVE_USP
-            csrrd   $sp, 0x1
-            andi    $sp, $sp, 0x3
-            bnez    $sp, {user_vec} 
-        
-            csrrd   $sp, KSAVE_USP
-            addi.d  $sp, $sp, -{trapframe_size} // allocate space
-        
-            // save the registers.
-
-            SAVE_REGS
-        
-            move    $a0, $sp
-            bl      {trap_handler}
-        
-            // Load registers from sp, include new sp
-            LOAD_REGS
-            ertn
-        ",
-        trapframe_size = const crate::trapframe::TRAPFRAME_SIZE,
-        user_vec = sym user_vec,
-        trap_handler = sym loongarch64_trap_handler,
-    );
-}
-
-#[naked]
-pub unsafe extern "C" fn tlb_fill() {
-    naked_asm!(
-        "
-        .balign 4096
-            csrwr   $t0, LA_CSR_TLBRSAVE
-            csrrd   $t0, LA_CSR_PGD
-            lddir   $t0, $t0, 3
-            lddir   $t0, $t0, 1
-            ldpte   $t0, 0
-            ldpte   $t0, 1
-            tlbfill
-            csrrd   $t0, LA_CSR_TLBRSAVE
-            ertn
-        ",
-    );
-}
-
 pub const PS_4K: usize = 0x0c;
 pub const _PS_16K: usize = 0x0e;
 pub const _PS_2M: usize = 0x15;
@@ -168,13 +128,13 @@ pub fn tlb_init(tlbrentry: usize) {
     // set hardware
     pwcl::set_pte_width(8); // 64-bits
     pwcl::set_ptbase(PAGE_SIZE_SHIFT);
-    pwcl::set_ptwidth(PAGE_SIZE_SHIFT - 3);
+    pwcl::set_ptwidth(9);
 
-    pwcl::set_dir1_base(PAGE_SIZE_SHIFT + PAGE_SIZE_SHIFT - 3);
-    pwcl::set_dir1_width(PAGE_SIZE_SHIFT - 3);
+    pwcl::set_dir1_base(PAGE_SIZE_SHIFT + 9);
+    pwcl::set_dir1_width(9);
 
-    pwch::set_dir3_base(PAGE_SIZE_SHIFT + PAGE_SIZE_SHIFT - 3 + PAGE_SIZE_SHIFT - 3);
-    pwch::set_dir3_width(PAGE_SIZE_SHIFT - 3);
+    pwch::set_dir3_base(PAGE_SIZE_SHIFT + 9 + 9);
+    pwch::set_dir3_width(9);
 
     tlbrentry::set_tlbrentry(tlbrentry & 0xFFFF_FFFF_FFFF);
     // pgdl::set_base(kernel_pgd_base);
@@ -183,7 +143,11 @@ pub fn tlb_init(tlbrentry: usize) {
 
 #[inline]
 pub fn init() {
-    tlb_init(tlb_fill as usize);
+    extern "C" {
+        fn tlb_refill();
+        fn trap_vector_base();
+    }
+    tlb_init(tlb_refill as usize);
     ecfg::set_vs(0);
     eentry::set_eentry(trap_vector_base as usize);
 }
@@ -227,6 +191,12 @@ fn loongarch64_trap_handler(tf: &mut TrapFrame) -> TrapType {
         Trap::MachineError(_) => todo!(),
         Trap::Unknown => todo!(),
         _ => {
+            println!("tlb save: {:#x?}", tlbrsave::read().data());
+            println!(
+                "CRMD: {:#x?}  PRMD: {:#x?}",
+                crmd::read(),
+                prmd::read().raw()
+            );
             panic!(
                 "Unhandled trap {:?} @ {:#x} BADV: {:#x}:\n{:#x?}",
                 estat.cause(),

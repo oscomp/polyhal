@@ -2,6 +2,17 @@ use core::ops::{Index, IndexMut};
 
 use super::TrapFrameArgs;
 
+#[repr(C)]
+#[derive(Debug, Default, Clone, Copy)]
+pub struct FpStatus {
+    /// Floating-point registers (f0-f31)
+    pub fp: [u64; 32],
+    /// Floating-point Condition Code register
+    pub fcc: [u8; 8],
+    /// Floating-point Control and Status register
+    pub fcsr: usize,
+}
+
 /// Saved registers when a trap (interrupt or exception) occurs.
 #[allow(missing_docs)]
 #[repr(C)]

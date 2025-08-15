@@ -21,7 +21,7 @@ impl PTE {
 
     #[inline]
     pub fn is_table(&self) -> bool {
-        self.0 != 0
+        self.0 != 0 && self.flags().is_empty()
     }
 
     #[inline]
@@ -37,14 +37,14 @@ impl PTE {
 
 impl From<MappingFlags> for PTEFlags {
     fn from(value: MappingFlags) -> Self {
-        let mut flags = PTEFlags::V;
+        let mut flags = PTEFlags::V | PTEFlags::MAT_NOCACHE;
         if value.contains(MappingFlags::W) {
             flags |= PTEFlags::W | PTEFlags::D;
         }
 
-        // if !value.contains(MappingFlags::X) {
-        //     flags |= PTEFlags::NX;
-        // }
+        if !value.contains(MappingFlags::X) {
+            flags |= PTEFlags::NX;
+        }
 
         if value.contains(MappingFlags::U) {
             flags |= PTEFlags::PLV_USER;
@@ -64,9 +64,9 @@ impl From<PTEFlags> for MappingFlags {
             flags |= MappingFlags::D;
         }
 
-        // if !self.contains(PTEFlags::NX) {
-        //     flags |= MappingFlags::X;
-        // }
+        if !val.contains(PTEFlags::NX) {
+            flags |= MappingFlags::X;
+        }
 
         if val.contains(PTEFlags::PLV_USER) {
             flags |= MappingFlags::U;
@@ -101,7 +101,7 @@ bitflags::bitflags! {
         /// Page is not executable.
         /// FIXME: Is it just for a huge page?
         /// Linux related url: https://github.com/torvalds/linux/blob/master/arch/loongarch/include/asm/pgtable-bits.h
-        const NX = bit!(12);
+        const NX = bit!(62);
         /// Whether the privilege Level is restricted. When RPLV is 0, the PTE
         /// can be accessed by any program with privilege Level highter than PLV.
         const RPLV = bit!(63);

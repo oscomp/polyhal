@@ -51,6 +51,7 @@ pub fn rust_secondary_main() {
     set_local_thread_pointer(hart_id());
     // Initialize CPU Configuration.
     init_cpu();
+    ph_init_iter(CtorType::Cpu).for_each(|x| (x.func)());
 
     super::call_real_main(hart_id());
 }

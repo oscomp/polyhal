@@ -16,8 +16,8 @@
     .equ    MAT_WUC,              2             // Weakly-ordered UnCached
 
     .equ    CSR_CRMD_PG,          1 << 4
-    .equ    CSR_CRMD_DATF,        (MAT_CC << 5)      // MAT of Fetch
-    .equ    CSR_CRMD_DATM,        (MAT_CC << 7)            // MAT of Memory Load/Store
+    .equ    CSR_CRMD_DATF,        (MAT_CC << 5)             // MAT of Fetch
+    .equ    CSR_CRMD_DATM,        (MAT_CC << 7)             // MAT of Memory Load/Store
     .macro INIT_DMW
         ori         $t0, $zero, CSR_DMW1_PLV0
         lu52i.d     $t0, $t0, -2048     # UC, PLV0, 0x8000 xxxx xxxx xxxx
@@ -43,14 +43,14 @@
     .type   _start, @function
 _start:
     INIT_DMW
-    bl          clear_bss
     INIT_CSR
+    bl          clear_bss
 
     la.global   $sp, bstack_top
     csrrd       $a0, 0x20           # cpuid
     la.global   $t0, {entry}
     jirl        $zero, $t0, 0
-    .size _start, . - _start
+.size _start, . - _start
 
     # secondary_start function
     .global _secondary_start
@@ -66,7 +66,7 @@ _secondary_start:
     la.global   $t0, {secondary_entry}
 
     jirl        $zero, $t0, 0
-    .size _secondary_start, . - _secondary_start
+.size _secondary_start, . - _secondary_start
 
     # Clear BSS section, write a byte in the L1
     .type clear_bss, @function
@@ -78,4 +78,4 @@ clear_bss:
     addi.d       $t0,   $t0, 1
     blt          $t0,   $t1, .L1
     ret
-    .size clear_bss, . - clear_bss
+.size clear_bss, . - clear_bss
