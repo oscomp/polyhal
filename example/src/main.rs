@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![feature(used_with_arg)]
 
 mod allocator;
 mod frame;
@@ -18,7 +19,7 @@ use polyhal::{
     instruction::{ebreak, shutdown},
     PhysAddr,
 };
-use polyhal::{percpu, println};
+use polyhal::{percpu, ph_ctor, println};
 use polyhal_boot::define_entry;
 use polyhal_trap::trap::TrapType::{self, *};
 use polyhal_trap::trapframe::{TrapFrame, TrapFrameArgs};
@@ -150,3 +151,26 @@ fn panic(info: &PanicInfo) -> ! {
     }
     shutdown()
 }
+
+core::arch::global_asm!(
+    ".section .data",
+    ".global embedded_dtb",
+    ".type embedded_dtb, @object",
+    "embedded_dtb:",
+    ".p2align 4",
+    ".incbin  \"loongson-2k1000.dtb\"",
+    ".size embedded_dtb, . - embedded_dtb"
+);
+
+ph_ctor!(TRY_INIT_DTB, polyhal::ctor::CtorType::Primary, || {
+    unsafe extern "C" {
+        fn embedded_dtb();
+    }
+    if polyhal::info::BOOT_INFO.dtb_ptr.is_some() {
+        return;
+    }
+    let _embedded_dtb_ptr = polyhal::pa!(embedded_dtb as usize - polyhal::consts::VIRT_ADDR_START);
+    let _ = polyhal::info::BOOT_INFO
+        .get_mut()
+        .parse_dtb(_embedded_dtb_ptr);
+});
